@@ -308,10 +308,18 @@ function DeleteAccount() {
 
 /* ------------------------------------------------------------------- shared */
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
   return (
     <section className="rounded-card border border-border bg-surface p-4">
-      <h2 className="font-display text-base font-semibold text-text">{title}</h2>
+      <h2 className="font-display text-base font-semibold text-text">
+        {title}
+      </h2>
       <div className="mt-3">{children}</div>
     </section>
   )

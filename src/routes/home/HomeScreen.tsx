@@ -31,8 +31,8 @@ function FirstRun() {
         Welcome to Stroke<span className="text-accent"> Off</span>
       </h1>
       <p className="mt-2 max-w-sm font-label text-sm text-muted">
-        A points-based side-game for your disc golf round. Pick a display name to
-        start — you can sign in later to save your progress.
+        A points-based side-game for your disc golf round. Pick a display name
+        to start — you can sign in later to save your progress.
       </p>
       <div className="mt-6 w-full max-w-xs">
         <DisplayNameForm
