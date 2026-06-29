@@ -53,7 +53,33 @@ real project is connected, apply migrations and exercise the flows.
 - **Full theme gallery (~21)** → Phase 7 (registry currently ships 2).
 - **Animations** → Phase 8. **Offline queue / PWA polish** → Phase 10.
 
+## Open design items & decisions (carried from the original handoff)
+
+Cosmetic / still-to-design (don't block the build):
+- **App icon & visual identity** — name is locked (**Stroke Off**); icon is a
+  placeholder (brand-blue ring in `public/`). Final identity TBD.
+- **Per-theme art** — 3 directions mocked, ~21 spec'd as directions; the full
+  gallery is Phase 7.
+- **Scorecard styling** — matrix vs solo per-theme pairing still to be locked
+  (Phase 6/7).
+
+Decisions worth re-confirming as you build (settled in spec, easy to revisit):
+- **Notifications / push are out of scope for v1** (the "skip if offline/
+  backgrounded" multi-player rule makes that fine). Revisit only if you want
+  off-app pings.
+- **Settings contents are a placeholder list** — fill in as you go.
+- **Tie-breaker methods** (coin flip, number picker, random draw) are extensible
+  — add more later if the group wants them (Phase 6).
+- Stack is **decided** (see `CLAUDE.md`) — don't re-litigate React/Vite/TS,
+  Supabase, Tailwind, Netlify.
+
 ## How to continue (next session)
+
+Full phase order (spec §15): **0** Scaffold · **1** Identity · **2** Groups &
+Rules · **3** Round setup & lobby · **4** Live scoring (Multi Phone) · **5**
+Single Phone & guests · **6** End of round & history · **7** Theme gallery · **8**
+Animations · **9** Guest claim flow · **10** Offline & PWA polish · **11**
+Community → People. (Phases 0–3 done.)
 
 Paste the reusable phase prompt from `docs/PHASE-0-KICKOFF.md`, swapping in the
 phase. For Phase 4:
