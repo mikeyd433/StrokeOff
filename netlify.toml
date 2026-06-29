@@ -1,0 +1,34 @@
+# Netlify configuration for the Stroke Off PWA (SPA build).
+#
+# Required environment variables (set in the Netlify UI → Site settings → Environment,
+# NOT committed here):
+#   VITE_SUPABASE_URL       - your Supabase project URL
+#   VITE_SUPABASE_ANON_KEY  - your Supabase anon/public key
+#
+# Server-only keys (RESEND_API_KEY, SUPABASE_SERVICE_ROLE_KEY) are only needed by
+# Supabase Edge Functions in a later phase — do not add them to the client build.
+
+[build]
+  command = "pnpm build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Corepack picks up the pnpm version declared in package.json's packageManager field.
+
+# SPA fallback so client-side routes (the five tabs) resolve on hard refresh / deep links.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Never cache the service worker or web manifest; let the PWA update flow work.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
