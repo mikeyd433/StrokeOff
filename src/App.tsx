@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import { HomeScreen } from '@/routes/home/HomeScreen'
 import { RoundScreen } from '@/routes/round/RoundScreen'
+import { RoundSetupScreen } from '@/routes/round/RoundSetupScreen'
+import { RoundLobbyScreen } from '@/routes/round/RoundLobbyScreen'
 import { RulesScreen } from '@/routes/rules/RulesScreen'
 import { HistoryScreen } from '@/routes/history/HistoryScreen'
 import { CommunityScreen } from '@/routes/community/CommunityScreen'
@@ -16,6 +18,8 @@ export function App() {
       <Route element={<Layout />}>
         <Route index element={<HomeScreen />} />
         <Route path="round" element={<RoundScreen />} />
+        <Route path="round/new" element={<RoundSetupScreen />} />
+        <Route path="round/:roundId" element={<RoundLobbyScreen />} />
         <Route path="rules" element={<RulesScreen />} />
         <Route path="history" element={<HistoryScreen />} />
         <Route path="community" element={<CommunityScreen />} />

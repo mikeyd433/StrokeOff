@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { EmptyState } from '@/components/EmptyState'
 import { DisplayNameForm } from '@/features/identity/DisplayNameForm'
@@ -53,6 +53,7 @@ function FirstRun() {
 
 function SignedInHome() {
   const { data: profile } = useProfile()
+  const navigate = useNavigate()
   const greeting = profile?.display_name ? `, ${profile.display_name}` : ''
 
   return (
@@ -61,10 +62,14 @@ function SignedInHome() {
       message="Stroke Off rides alongside your regular round — log points when conditions are met, and they convert to stroke deductions at the end."
       action={
         <div className="flex flex-col items-center gap-3">
-          <Button type="button" disabled>
+          <Button type="button" onClick={() => navigate('/round/new')}>
             Start a round
           </Button>
-          <Button type="button" variant="secondary" disabled>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => navigate('/round')}
+          >
             Join a round
           </Button>
         </div>

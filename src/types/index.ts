@@ -95,6 +95,7 @@ export interface Round {
   created_by: UUID
   started_at: string | null
   ended_at: string | null
+  created_at: string
 }
 
 export type RosterStatus = 'active' | 'left'
@@ -112,6 +113,18 @@ export interface RoundPlayer {
   claim_token: string | null
   claim_token_expires_at: string | null
   claimed: boolean
+}
+
+/** Per-round frozen copy of an active rule (spec §5, §7). */
+export interface RoundRule {
+  round_id: UUID
+  rule_id: UUID
+  name_snapshot: string
+  display_name_snapshot: string
+  description_snapshot: string | null
+  points_snapshot: number
+  player_scope: PlayerScope
+  is_repeatable: boolean
 }
 
 export interface PointEvent {
