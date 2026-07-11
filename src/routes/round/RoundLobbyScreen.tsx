@@ -13,6 +13,7 @@ import {
   useStartRound,
 } from '@/lib/rounds'
 import { errorMessage } from '@/lib/validation'
+import { RoundRulesManager } from '@/features/round/RoundRulesManager'
 
 /** Lobby — Screen 2 (spec §5). Gather players, then the creator starts the round. */
 export function RoundLobbyScreen() {
@@ -36,6 +37,7 @@ export function RoundLobbyScreen() {
       <div className="flex flex-col gap-4 p-4">
         <Header round={round} />
         <Roster players={players} />
+        <RoundRulesManager round={round} isHost={isCreator} />
         <div className="rounded-card border border-border bg-surface p-4 text-center">
           <p className="font-label text-sm text-muted">
             Round is live. Live scoring arrives in Phase 4.
@@ -67,6 +69,8 @@ export function RoundLobbyScreen() {
       </section>
 
       <Roster players={players} />
+
+      <RoundRulesManager round={round} isHost={isCreator} />
 
       {round.scoring_mode === 'single_phone' ? (
         <AddGuest roundId={round.id} />

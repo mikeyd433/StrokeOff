@@ -3,7 +3,25 @@
 Living status doc. Read `CLAUDE.md` and `docs/strokeoff-spec.md` first — the spec is
 the source of truth. This file says **what's built, what's next, and what to watch**.
 
-_Last updated after Phase 3._
+_Last updated after Phase 3, plus two post-Phase-3 product adjustments (below)._
+
+## Post-Phase-3 adjustments
+
+Two product tweaks landed on top of Phase 3 (not new phases):
+
+- **Avatars for everyone.** Avatar upload is no longer login-only — anonymous
+  players can add a photo too (Community → Me). Anonymous sessions already have
+  a uid, so the existing `avatars` bucket RLS (`storage.foldername = auth.uid()`)
+  covers them; only the UI gate in `MeSection` was removed. Custom messages stay
+  login-only. Spec §11, CLAUDE.md principle 7 updated.
+- **Mid-round rules (host only).** The round's active-rule set is no longer
+  frozen at Start (conversion + theme still are). The host can toggle library
+  rules on/off, pull in more from the group library, or author a new rule on the
+  fly, from the lobby **and** the live round. Migration `0004` adds
+  `add_round_rule` / `remove_round_rule` RPCs (host-checked, `lobby`/`active`
+  only) and publishes `round_rules` to Realtime; `useRoundRealtime` now
+  subscribes to it. UI: `src/features/round/RoundRulesManager.tsx`, rendered in
+  `RoundLobbyScreen`. Spec §5/§7 updated.
 
 ## Where things stand
 

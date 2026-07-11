@@ -4,7 +4,13 @@ import { supabase } from './supabase'
 import { useAuth } from './auth'
 import { selectCurrentRound } from '@/features/round/currentRound'
 import type { ConversionConfig } from '@/features/conversion/types'
-import type { ConversionMode, Round, RoundPlayer, ScoringMode } from '@/types'
+import type {
+  ConversionMode,
+  Round,
+  RoundPlayer,
+  RoundRule,
+  ScoringMode,
+} from '@/types'
 
 export interface ConversionSnapshot {
   mode: ConversionMode
@@ -82,9 +88,26 @@ export function useRoundPlayers(roundId: string | undefined) {
   })
 }
 
+/** The round's active-rule snapshot (spec §5, §7), editable mid-round by the host. */
+export function useRoundRules(roundId: string | undefined) {
+  return useQuery({
+    queryKey: ['round-rules', roundId],
+    enabled: Boolean(roundId),
+    queryFn: async (): Promise<RoundRule[]> => {
+      const { data, error } = await supabase
+        .from('round_rules')
+        .select('*')
+        .eq('round_id', roundId!)
+      if (error) throw error
+      return data ?? []
+    },
+  })
+}
+
 /**
- * Live lobby population (spec §5): subscribe to Postgres changes on round_players
- * and the round row, refreshing the cached queries as players join/leave.
+ * Live lobby population (spec §5): subscribe to Postgres changes on round_players,
+ * the round row, and round_rules, refreshing the cached queries as players
+ * join/leave and the host adjusts the active rules mid-round.
  */
 export function useRoundRealtime(roundId: string | undefined) {
   const qc = useQueryClient()
@@ -114,6 +137,18 @@ export function useRoundRealtime(roundId: string | undefined) {
         },
         () => {
           void qc.invalidateQueries({ queryKey: ['round', roundId] })
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'round_rules',
+          filter: `round_id=eq.${roundId}`,
+        },
+        () => {
+          void qc.invalidateQueries({ queryKey: ['round-rules', roundId] })
         },
       )
       .subscribe()
@@ -190,6 +225,40 @@ export function useStartRound() {
     onSuccess: (round) => {
       void qc.invalidateQueries({ queryKey: ['round', round.id] })
       void qc.invalidateQueries({ queryKey: ['current-round', user?.id] })
+    },
+  })
+}
+
+/** Add a group rule to a live round's active set (host only; RLS enforced). */
+export function useAddRoundRule(roundId: string | undefined) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (ruleId: string): Promise<void> => {
+      const { error } = await supabase.rpc('add_round_rule', {
+        p_round_id: roundId!,
+        p_rule_id: ruleId,
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['round-rules', roundId] })
+    },
+  })
+}
+
+/** Remove a rule from a live round's active set (host only; RLS enforced). */
+export function useRemoveRoundRule(roundId: string | undefined) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (ruleId: string): Promise<void> => {
+      const { error } = await supabase.rpc('remove_round_rule', {
+        p_round_id: roundId!,
+        p_rule_id: ruleId,
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['round-rules', roundId] })
     },
   })
 }
