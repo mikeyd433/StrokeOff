@@ -362,7 +362,25 @@ rules               (id, group_id, name, display_name, description, points,
 conversion_tables   (id, group_id NULLABLE, name,
                      mode ['tier'|'ratio'], config JSONB)
 
+courses             (id, name, city, state, hole_count NULLABLE,
+                     total_par NULLABLE, par_low NULLABLE, par_high NULLABLE,
+                     par_source NULLABLE, sourced_on DATE NULLABLE,
+                     par_confidence ['verified'|'community'|'unverified'|'user'],
+                     external_url NULLABLE, duplicate_note NULLABLE,
+                     notes NULLABLE, is_seed BOOL,
+                     created_by NULLABLE, updated_by NULLABLE)
+
+course_layouts      (id, course_id, name, hole_count NULLABLE,
+                     total_par NULLABLE, length_ft NULLABLE, source NULLABLE,
+                     status ['ok'|'conflict'|'superseded'|'uncertain'],
+                     note NULLABLE, is_seed BOOL, created_by, updated_by)
+
+course_holes        (id, layout_id, hole_number, par, distance_ft NULLABLE)
+                    -- when these exist they drive their layout's total_par
+
 rounds              (id, group_id, code, course_name, played_on DATE,
+                     course_id NULLABLE, course_layout_id NULLABLE,
+                     course_par NULLABLE,
                      scoring_mode ['multi_phone'|'single_phone'],
                      status ['setup'|'lobby'|'active'|'complete'],
                      conversion_snapshot JSONB, theme_snapshot JSONB,
@@ -391,11 +409,12 @@ event_confirmations (event_id, player_id,
 - No `is_core` — all rules are editable.
 - Every user gets an `is_personal` group on signup; every round carries a `group_id`, so rules/conversion/theme always resolve from a group.
 - `role` is `owner` or `member`; the owner can remove members, rename, delete, or hand off the group. Membership is login-only.
-- `rule_name_snapshot` / `points_snapshot` preserve history; `conversion_snapshot` freezes a round's scoring math; `theme_snapshot` freezes a round's look.
+- `rule_name_snapshot` / `points_snapshot` preserve history; `conversion_snapshot` freezes a round's scoring math; `theme_snapshot` freezes a round's look; `course_par` freezes the par a round was played against, so correcting a course later never rewrites a played round.
+- **Courses are a shared directory, not group-scoped.** Par is a property of a **layout**, not a course — a course with blue and white tees genuinely plays to two pars — so `courses.total_par` is a headline number and `par_low`/`par_high` keep the spread across layouts visible behind it. `total_par` is **null when nothing has been sourced**; it is never inferred from the hole count, which would be a fiction for any course containing a par 4 or 5. `par_confidence` records where a number came from, and `status` keeps layouts whose sources disagree visible and flagged rather than silently dropped. Both course-level and hole-level par are editable in the app; a layout with hole detail derives its total from its holes.
 - Guest slots carry the **claim token** fields for §10's claim flow.
 - `roster_status` keeps players who leave on the roster (points intact, can rejoin); late joiners are added live.
 - Editing a logged point updates `count`/`points_snapshot` and sets `edited_at`; **permission is enforced** — you may edit only points where you are the subject (Multi Phone) or the controller/manager (Single Phone / guests).
-- **Row Level Security:** round participants read/write that round's events and players (writes scoped to your own/controlled subjects); group members read/write that group's rules, conversion, and theme; a completed round is readable by its participants and the group's members; profiles' public fields (name, avatar, message) visible to people they've shared a round with.
+- **Row Level Security:** round participants read/write that round's events and players (writes scoped to your own/controlled subjects); group members read/write that group's rules, conversion, and theme; a completed round is readable by its participants and the group's members; profiles' public fields (name, avatar, message) visible to people they've shared a round with; the **course directory is world-readable** (browsable before you've picked a display name) and correctable by anyone signed in, with imported rows marked `is_seed` so the baseline can't be deleted and a client write can never claim seeded provenance.
 
 ---
 
@@ -407,6 +426,7 @@ Each phase is self-contained and shippable, with its own `CLAUDE.md` context.
 - **Phase 1 — Identity & personal group:** anonymous auth + magic-link login, profiles (display name, avatar, custom message), **Community → Me** (incl. **sign out / change email / delete account**), **auto-created personal group** on signup, **first-run flow + empty states**. *Deliverable: sign in, persist a profile, always have a group context.*
 - **Phase 2 — Groups & Rules library:** group create/join (**invite code/link + quick-add**), owner/member roles, group-scoped fully editable **rules CRUD** (Rules tab) with search/filter, conversion-table editor (group default), **Community → Groups** section. *Deliverable: author and browse a group's full rule set.*
 - **Phase 3 — Round setup & lobby:** two-screen setup (**group selector**, scoring-mode, conversion, theme picker, active-rules with search + bulk, animations toggle), QR + code generation, **join via QR/code**, presence, live player population. *Deliverable: multiple phones land in one lobby.*
+- **Course directory (added alongside Phase 3):** shared `courses` / `course_layouts` / `course_holes` tables seeded from an imported Massachusetts roster, a browsable/searchable directory under Community, course- and hole-level par editing, and a course picker on round setup that snapshots `course_par` onto the round. *Deliverable: rounds name a real course and carry its par.* Par is not yet used in the scoring math — that lands with regular-score entry in Phase 6.
 - **Phase 4 — Live scoring (Multi Phone):** self-scoring, real-time leaderboard, log-point, event feed, **edit/correct logged points (own-only)**, undo/void, **best-effort multi-player confirmations** (skip-and-apply when offline/backgrounded), **mid-round join/leave** with persistent roster. *Deliverable: the core game across devices.*
 - **Phase 5 — Single Phone & guests:** controller logging, spectator read-only, **guests in both modes**, guest add/manage/**reassign**, controller edits any point. *Deliverable: both scoring modes + guests.*
 - **Phase 6 — End of round & history:** **any-participant** end-round friction (menu + hold + dialog), regular-score entry, conversion calc, **tie-breakers** ("by tie-breaker" flag), **results leaderboard**, auto-save to History, History (every round you were in) + detail + delete, **image export** (full matrix card + single per-player cards). *Deliverable: a full round end-to-end with shareable scorecards.*

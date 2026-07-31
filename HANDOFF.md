@@ -3,12 +3,23 @@
 Living status doc. Read `CLAUDE.md` and `docs/strokeoff-spec.md` first — the spec is
 the source of truth. This file says **what's built, what's next, and what to watch**.
 
-_Last updated after Phase 3, plus two post-Phase-3 product adjustments (below)._
+_Last updated after Phase 3, plus three post-Phase-3 product adjustments (below)._
 
 ## Post-Phase-3 adjustments
 
-Two product tweaks landed on top of Phase 3 (not new phases):
+Three product tweaks landed on top of Phase 3 (not new phases):
 
+- **Course directory + par.** Courses used to be free text on a round and par
+  didn't exist anywhere. Migrations `0005` (schema + RLS + `create_round` gains
+  `p_course_id` / `p_course_layout_id`) and `0006` (seed) add a shared,
+  world-readable directory: 120 Massachusetts courses, 25 with a sourced par, 65
+  layouts, 2 with hole-by-hole pars. Par is editable at the course level and hole
+  by hole; a layout with hole detail derives its total from its holes via a DB
+  trigger. Round setup now has a course picker and freezes `rounds.course_par`.
+  Dataset + regenerator live in `supabase/seed/` (see its README). UI:
+  `src/routes/courses/`, `src/features/courses/`, Community → Courses.
+  **Par is not wired into the scoring math yet** — that belongs with regular-score
+  entry in Phase 6. Spec §14/§15 and CLAUDE.md updated.
 - **Avatars for everyone.** Avatar upload is no longer login-only — anonymous
   players can add a photo too (Community → Me). Anonymous sessions already have
   a uid, so the existing `avatars` bucket RLS (`storage.foldername = auth.uid()`)
@@ -25,19 +36,28 @@ Two product tweaks landed on top of Phase 3 (not new phases):
 
 ## Where things stand
 
-- **Branch:** all work is on `claude/strokeoff-phase-0-scaffold-khauv5`. Keep
-  developing and pushing there unless told otherwise (no per-phase branches in
-  this setup).
+- **Branch:** work through Phase 3 landed on
+  `claude/strokeoff-phase-0-scaffold-khauv5`; the course directory is on
+  `claude/bulk-course-par-import-likbuz`. Keep developing and pushing to the
+  branch you were given (no per-phase branches in this setup).
 - **Phases complete: 0, 1, 2, 3.** Next up: **Phase 4 — Live scoring (Multi Phone).**
-- **Checks:** `pnpm typecheck && pnpm lint && pnpm test` (19 tests) and `pnpm build`
+- **Checks:** `pnpm typecheck && pnpm lint && pnpm test` (38 tests) and `pnpm build`
   are all green. Dev server boots and serves.
 
 ### Important caveat — backend not yet live
 There is **no Supabase project wired in this environment** (`.env.local` is empty).
-All Supabase code (auth, RLS, RPCs, Realtime) is written and type-checks, but has
-**not been run against a real database**. Phases were verified via
-typecheck/lint/unit-tests/build + dev-server smoke, not end-to-end. First time a
-real project is connected, apply migrations and exercise the flows.
+All Supabase code (auth, RLS, RPCs, Realtime) is written and type-checks, but the
+app has **not been run end-to-end against a real database**. Phases were verified
+via typecheck/lint/unit-tests/build + dev-server smoke.
+
+Migrations `0001`–`0006` *have* been applied in order to a throwaway Postgres 16
+with a hand-rolled `auth`/`storage` shim: they apply clean, the seed lands
+120/25/65/27 rows and is safely re-runnable, the hole→layout par trigger
+recalculates on insert/update/delete, `create_round` snapshots the right par, and
+the course RLS policies were exercised (a signed-in user can correct a seeded par
+but can't delete a seeded row, claim seeded provenance, or insert on someone
+else's behalf; anon can read but not write). That's the SQL validated, not the
+app-to-Supabase round trip — still exercise the flows when a real project lands.
 
 ## What each phase delivered
 
@@ -57,6 +77,10 @@ real project is connected, apply migrations and exercise the flows.
   scoring mode, conversion, theme picker, active-rules + bulk, animations), QR +
   code, join-by-code (+ `?join=CODE` auto-join), live roster via Realtime,
   single-phone guest pre-add, creator Start. Migration `0003`.
+- **Course directory (post-Phase-3):** shared `courses` / `course_layouts` /
+  `course_holes`, seeded MA roster, directory browse/search, course- and
+  hole-level par editing, round-setup course picker + par snapshot. Migrations
+  `0005`, `0006`.
 
 ## Stubbed / deferred (don't assume these exist)
 

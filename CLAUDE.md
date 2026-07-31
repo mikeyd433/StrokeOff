@@ -45,6 +45,7 @@ These ripple through everything; get them right from Phase 0.
   supabase/
     migrations/    SQL incl. RLS policies
     functions/     edge functions (email, claim)
+    seed/          course directory dataset + its migration generator
   docs/
     strokeoff-spec.md
   ```
@@ -74,7 +75,24 @@ pnpm typecheck    # tsc --noEmit
 pnpm lint         # eslint
 pnpm test         # vitest
 npx supabase ...  # migrations / local stack
+
+# Course directory: edit supabase/seed/ma-courses.json, then regenerate
+node supabase/seed/build-seed-migration.mjs
 ```
+
+## Course directory
+
+`courses` / `course_layouts` / `course_holes` are a **shared, world-readable
+directory**, not group-scoped — seeded from an imported Massachusetts roster and
+correctable in-app by anyone signed in. Two rules matter:
+
+- **Par belongs to a layout, not a course.** The course's `total_par` is a
+  headline; `par_low`/`par_high` keep the spread across layouts visible. A layout
+  with hole-by-hole detail derives its total from its holes (DB trigger) — don't
+  write `total_par` on those from the client.
+- **Never invent a par.** `total_par` is null when nothing has been sourced. 3 ×
+  holes is wrong for any course with a par 4 or 5. `par_confidence` records
+  provenance; `is_seed` marks imported rows and is immutable from the client.
 
 ## Environment
 

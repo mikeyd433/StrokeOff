@@ -26,7 +26,11 @@ export interface ThemeSnapshot {
 
 export interface CreateRoundInput {
   groupId: string
+  /** Free-text course name; ignored when a directory course is picked. */
   course: string
+  /** Directory course + layout, when the round is played on a listed course. */
+  courseId?: string | null
+  courseLayoutId?: string | null
   playedOn: string
   scoringMode: ScoringMode
   conversion: ConversionSnapshot
@@ -171,6 +175,9 @@ export function useCreateRound() {
         p_theme: input.theme,
         p_animations: input.animationsEnabled,
         p_rule_ids: input.ruleIds,
+        // The RPC freezes the course's par onto the round (principle 2).
+        p_course_id: input.courseId ?? null,
+        p_course_layout_id: input.courseLayoutId ?? null,
       })
       if (error) throw error
       return data as Round

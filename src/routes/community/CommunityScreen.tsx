@@ -1,11 +1,12 @@
 import { MeSection } from './MeSection'
 import { PeopleSection } from './PeopleSection'
 import { GroupsSection } from './GroupsSection'
+import { CoursesSection } from './CoursesSection'
 
 /**
- * Community tab (spec §3, §11). Three sections — Me, People, Groups. Phase 1
- * delivers Me (identity + profile + account management) and surfaces the personal
- * group; People and group create/join arrive in later phases.
+ * Community tab (spec §3, §11). Me (identity + profile + account management),
+ * People, Groups, and the shared course directory. The five tabs are fixed, so
+ * the directory lives here as a section rather than as a sixth tab.
  */
 export function CommunityScreen() {
   return (
@@ -13,6 +14,7 @@ export function CommunityScreen() {
       <MeSection />
       <PeopleSection />
       <GroupsSection />
+      <CoursesSection />
     </div>
   )
 }

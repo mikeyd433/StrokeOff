@@ -90,7 +90,12 @@ export function RoundLobbyScreen() {
 function Header({
   round,
 }: {
-  round: { course_name: string; played_on: string; scoring_mode: string }
+  round: {
+    course_name: string
+    course_par: number | null
+    played_on: string
+    scoring_mode: string
+  }
 }) {
   return (
     <div>
@@ -100,6 +105,7 @@ function Header({
       <p className="font-label text-xs text-muted">
         {round.played_on} ·{' '}
         {round.scoring_mode === 'single_phone' ? 'Single phone' : 'Multi phone'}
+        {round.course_par != null ? ` · par ${round.course_par}` : ''}
       </p>
     </div>
   )

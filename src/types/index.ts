@@ -76,6 +76,68 @@ export interface ConversionTable {
   config: Record<string, unknown>
 }
 
+export type ParConfidence = 'verified' | 'community' | 'unverified' | 'user'
+
+/**
+ * A course in the shared directory. `total_par` is the headline par; it is null
+ * when no par has ever been sourced — never guessed from the hole count, since
+ * that would be a fiction for any course with a par 4 or 5. `par_low`/`par_high`
+ * keep the spread across documented layouts visible behind that one number.
+ */
+export interface Course {
+  id: UUID
+  name: string
+  city: string | null
+  state: string
+  hole_count: number | null
+  total_par: number | null
+  par_low: number | null
+  par_high: number | null
+  par_source: string | null
+  par_confidence: ParConfidence
+  sourced_on: string | null
+  external_url: string | null
+  duplicate_note: string | null
+  notes: string | null
+  is_seed: boolean
+  created_by: UUID | null
+  updated_by: UUID | null
+  created_at: string
+  updated_at: string
+}
+
+/** Data-quality flag carried over from the imported reference data. */
+export type LayoutStatus = 'ok' | 'conflict' | 'superseded' | 'uncertain'
+
+/** One configuration of a course (tee/basket combination). Par lives here. */
+export interface CourseLayout {
+  id: UUID
+  course_id: UUID
+  name: string
+  hole_count: number | null
+  total_par: number | null
+  length_ft: number | null
+  source: string | null
+  status: LayoutStatus
+  note: string | null
+  is_seed: boolean
+  created_by: UUID | null
+  updated_by: UUID | null
+  created_at: string
+  updated_at: string
+}
+
+/** Per-hole par for a layout. When these exist they drive the layout's total. */
+export interface CourseHole {
+  id: UUID
+  layout_id: UUID
+  hole_number: number
+  par: number
+  distance_ft: number | null
+  created_at: string
+  updated_at: string
+}
+
 export type ScoringMode = 'multi_phone' | 'single_phone'
 export type RoundStatus = 'setup' | 'lobby' | 'active' | 'complete'
 
@@ -84,6 +146,11 @@ export interface Round {
   group_id: UUID
   code: string
   course_name: string
+  /** Directory course this round was played on, when one was picked. */
+  course_id: UUID | null
+  course_layout_id: UUID | null
+  /** Par frozen at round creation (architecture principle 2). */
+  course_par: number | null
   played_on: string
   scoring_mode: ScoringMode
   status: RoundStatus

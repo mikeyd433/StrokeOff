@@ -7,6 +7,8 @@ import { RoundLobbyScreen } from '@/routes/round/RoundLobbyScreen'
 import { RulesScreen } from '@/routes/rules/RulesScreen'
 import { HistoryScreen } from '@/routes/history/HistoryScreen'
 import { CommunityScreen } from '@/routes/community/CommunityScreen'
+import { CoursesScreen } from '@/routes/courses/CoursesScreen'
+import { CourseDetailScreen } from '@/routes/courses/CourseDetailScreen'
 
 /**
  * App routes. The five static tabs render inside the persistent Layout shell
@@ -23,6 +25,9 @@ export function App() {
         <Route path="rules" element={<RulesScreen />} />
         <Route path="history" element={<HistoryScreen />} />
         <Route path="community" element={<CommunityScreen />} />
+        {/* Course directory — reached from Community and from round setup. */}
+        <Route path="courses" element={<CoursesScreen />} />
+        <Route path="courses/:courseId" element={<CourseDetailScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

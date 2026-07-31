@@ -4,6 +4,8 @@ import { Button } from '@/components/Button'
 import { TextInput } from '@/components/TextInput'
 import { Select } from '@/components/Select'
 import { FormMessage } from '@/components/FormMessage'
+import { CoursePicker } from '@/features/round/CoursePicker'
+import type { CourseSelection } from '@/features/round/CoursePicker'
 import { ThemePicker } from '@/features/round/ThemePicker'
 import { ActiveRulesPicker } from '@/features/round/ActiveRulesPicker'
 import { ConversionFields } from '@/features/conversion/ConversionFields'
@@ -43,7 +45,11 @@ export function RoundSetupScreen() {
   )
   const { data: rules } = useRules(activeGroup?.id)
 
-  const [course, setCourse] = useState('')
+  const [course, setCourse] = useState<CourseSelection>({
+    courseId: null,
+    layoutId: null,
+    freeText: '',
+  })
   const [playedOn, setPlayedOn] = useState(today())
   const [scoringMode, setScoringMode] = useState<ScoringMode>('multi_phone')
   const [animations, setAnimations] = useState(true)
@@ -95,7 +101,9 @@ export function RoundSetupScreen() {
     try {
       const round = await createRound.mutateAsync({
         groupId: activeGroup.id,
-        course: course.trim(),
+        course: course.freeText.trim(),
+        courseId: course.courseId,
+        courseLayoutId: course.layoutId,
         playedOn,
         scoringMode,
         conversion,
@@ -132,13 +140,7 @@ export function RoundSetupScreen() {
         </Select>
       </Field>
 
-      <Field label="Course">
-        <TextInput
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-          placeholder="Where are you playing?"
-        />
-      </Field>
+      <CoursePicker value={course} onChange={setCourse} />
 
       <Field label="Date">
         <TextInput
